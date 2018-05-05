@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/philangist/frameio-assets/controllers"
 )
 
@@ -12,7 +13,14 @@ import (
 func main (){
 	fmt.Println("Hej, Världen!")
 
-	http.HandleFunc("/projects", controllers.ProjectsControllerGET)
+	router := mux.NewRouter()
+	router.HandleFunc(
+		"/projects/{id:[0-9]+}",
+		controllers.ProjectsControllerGET,
+	).Methods("GET")
+
+	http.Handle("/", router)
+
 	log.Println("Nu lyssna på :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
