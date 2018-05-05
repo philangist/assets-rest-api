@@ -14,7 +14,7 @@ func main (){
 	dbConfig := models.ReadDBConfigFromEnv()
 	log.Println("connection string is ", dbConfig.ConnectionString())
 	pm := models.NewProjectsManager(dbConfig)
-	query := models.NewProductsQuery(3)
+	query := models.NewProductsQuery("")
 	projects, err := pm.Execute(query)
 	if err != nil {
 		log.Panic(err)

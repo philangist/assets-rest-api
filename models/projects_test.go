@@ -22,7 +22,7 @@ func TestDBConfig(t *testing.T){
 
 type productsQueryTestCases struct {
 	tag      string
-	id          int
+	id       string
 	expected string
 	isValid    bool
 }
@@ -34,20 +34,20 @@ func TestProductsQuery(t *testing.T){
 		{
 			// implicit id=nil
 			tag:        "Case 1",
-			expected:   "SELECT * FROM projects",
+			expected:   "SELECT p.id, p.name, a.id, p.created_at FROM projects p JOIN assets a ON a.project_id=p.id WHERE a.category=1;",
 			isValid:  false,
 		},
 		{
 			tag:        "Case 2",
-			id:         -1,
-			expected:   "SELECT * FROM projects WHERE ID=-1",
+			id:         "-1",
+			expected:   "SELECT p.id, p.name, a.id, p.created_at FROM projects p JOIN assets a ON a.project_id=p.id WHERE a.category=1;",
 			isValid:  false,
 		},
 		{
 			tag:        "Case 3",
-			id:         99,
-			expected:   "SELECT * FROM projects WHERE ID=99",
-			isValid:  true,
+			id:         "99",
+			expected:   "SELECT p.id, p.name, a.id, p.created_at FROM projects p JOIN assets a ON a.project_id=p.id WHERE a.category=1 AND p.id=99;",
+			isValid:    true,
 		},
 	}
 

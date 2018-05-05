@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"reflect"
+	"strconv"
 	"time"
 )
 
@@ -22,9 +24,6 @@ func (pm *ProjectsManager) Connection() (*sql.DB, error) {
 }
 
 func (pm *ProjectsManager) Execute(query *ProjectsQuery) (*Projects, error) {
-	/*
-        In this part of pm, we'll invoke pm.Connection(), defer connection.Close(), use query to build out a sql statement, run the sql statement with connection, and return it as a Projects struct.
-        */
 	db, err := pm.Connection()
 	if err != nil {
 		log.Panic(err)
@@ -59,45 +58,51 @@ func (pm *ProjectsManager) Execute(query *ProjectsQuery) (*Projects, error) {
 		projects = append(projects, project)
 	}
 
-	return &Projects{projects}, nil
+	return &Projects{projects, len(projects)}, nil
 }
 
 // EntityQuery
 type ProjectsQuery struct {
-	ID int  // TODO: replace ID int with ID string.
-	// Typecast to assert it's a valid int when value is not nil
+	ID sql.NullInt64
 }
 
-func NewProductsQuery(id int) *ProjectsQuery {
-	return &ProjectsQuery{id}
+func NewProductsQuery(id string) *ProjectsQuery {
+	if id == ""{
+		return &ProjectsQuery{}
+	}
+	i, err := strconv.Atoi(id)
+	id64 := sql.NullInt64{Int64: int64(i), Valid: err == nil}
+	return &ProjectsQuery{id64}
 }
 
 func (pq *ProjectsQuery) Validate() error {
-	if pq.ID <= 0 {
-		return fmt.Errorf("Error. Invalid ID value: %d", pq.ID)
+	value := pq.ID.Int64
+	if value < 0 {
+		return fmt.Errorf("Error. Invalid ID value: %d", value)
 	}
 	return nil
 }
 
 func (pq *ProjectsQuery) Evaluate() string {
-	// more representative select statement:
+	// generates query that left joins projects and assets tables to return
+	// composite `Project` representation for the API layer
 	query :=
-`SELECT p.id, p.name, a.id root_folder_id, p.created_at
-FROM projects p JOIN assets a ON a.project_id=p.id
-WHERE p.id=1 AND a.category=1;
-`
-	/*query := "SELECT * FROM projects"
+`SELECT p.id, p.name, a.id, p.created_at FROM projects p JOIN assets a ON a.project_id=p.id WHERE a.category=1`
+	if (reflect.TypeOf(pq.ID) != nil) && (pq.ID.Int64 > 0) {
+		query += fmt.Sprintf(" AND p.id=%d", pq.ID.Int64)
+	}
 
-	if pq.ID != 0 {
-		conditional := fmt.Sprintf(" WHERE ID=%d", pq.ID)
-		query += conditional
-	}*/
+	log.Println("pq.ID.Int64 is ", pq.ID.Int64)
+	log.Println("query is ", query)
+
+	query += ";"
 	return query
 }
 
 // SerializableEntity
 type Projects struct {
 	Projects []Project `json:"data"`
+	Total         int `json:"total"`
 }
 
 type Project struct {
