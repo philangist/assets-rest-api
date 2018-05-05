@@ -24,4 +24,8 @@ INSERT INTO projects(id, name) VALUES
        (1, 'Avengers'),
        (2, 'Avengers: Age of Ultron'),
        (3, 'Avengers: Infinity War');
+
+INSERT INTO assets(id, name, parent_id, media_url, category, project_id) VALUES
+       (1, 'Tony Stark Bloopers', NULL, NULL, 1, 1),
+       (2, 'RDJ_fall.mkv', 1, 'long_sha256_hash_here', 2, 1);
 COMMIT;

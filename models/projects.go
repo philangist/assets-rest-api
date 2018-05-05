@@ -48,7 +48,7 @@ func (pm *ProjectsManager) Execute(query *ProjectsQuery) (*Projects, error) {
 		err = rows.Scan(
 			&project.ID,
 			&project.Name,
-			// &project.RootFolderID,
+			&project.RootFolderID,
 			&project.CreatedAt,
 		)
 
@@ -64,7 +64,8 @@ func (pm *ProjectsManager) Execute(query *ProjectsQuery) (*Projects, error) {
 
 // EntityQuery
 type ProjectsQuery struct {
-	ID int
+	ID int  // TODO: replace ID int with ID string.
+	// Typecast to assert it's a valid int when value is not nil
 }
 
 func NewProductsQuery(id int) *ProjectsQuery {
@@ -79,18 +80,30 @@ func (pq *ProjectsQuery) Validate() error {
 }
 
 func (pq *ProjectsQuery) Evaluate() string {
-	return "SELECT * FROM projects"
+	// more representative select statement:
+	query :=
+`SELECT p.id, p.name, a.id root_folder_id, p.created_at
+FROM projects p JOIN assets a ON a.project_id=p.id
+WHERE p.id=1 AND a.category=1;
+`
+	/*query := "SELECT * FROM projects"
+
+	if pq.ID != 0 {
+		conditional := fmt.Sprintf(" WHERE ID=%d", pq.ID)
+		query += conditional
+	}*/
+	return query
 }
 
 // SerializableEntity
 type Projects struct {
-	Projects []Project
+	Projects []Project `json:"data"`
 }
 
 type Project struct {
 	ID                  int `json:"id"`
 	Name             string `json:"name"`
-	// RootFolderID        int `json:"root_folder_id"`
+	RootFolderID        int `json:"root_folder_id"`
 	CreatedAt     time.Time `json:"created_at"`
 }
 
