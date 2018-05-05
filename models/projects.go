@@ -92,9 +92,6 @@ func (pq *ProjectsQuery) Evaluate() string {
 		query += fmt.Sprintf(" AND p.id=%d", pq.ID.Int64)
 	}
 
-	log.Println("pq.ID.Int64 is ", pq.ID.Int64)
-	log.Println("query is ", query)
-
 	query += ";"
 	return query
 }
