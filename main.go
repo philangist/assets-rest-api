@@ -2,14 +2,22 @@ package main
 
 import (
 	"fmt"
+	"log"
 
-	"github.com/philangist/frameio-assets/api"
+	"github.com/philangist/frameio-assets/models"
 )
 
-func main (){
-	dbName, dbUser, dbPassword := api.ReadDBCredentials()
 
+func main (){
 	fmt.Println("Hej, Världen!")
-	fmt.Println(
-		"Postgres access credentials are: ", dbName, dbUser, dbPassword)
+
+	dbConfig := models.ReadDBConfigFromEnv()
+	log.Println("connection string is ", dbConfig.ConnectionString())
+	pm := models.NewProjectsManager(dbConfig)
+	query := models.NewProductsQuery(1)
+	projects, err := pm.Execute(query)
+	if err != nil {
+		log.Panic(err)
+	}
+	log.Printf("projects are %v", projects)
 }
