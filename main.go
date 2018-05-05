@@ -3,25 +3,16 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 
-	"github.com/philangist/frameio-assets/models"
+	"github.com/philangist/frameio-assets/controllers"
 )
 
 
 func main (){
 	fmt.Println("Hej, Världen!")
 
-	dbConfig := models.ReadDBConfigFromEnv()
-	log.Println("connection string is ", dbConfig.ConnectionString())
-	pm := models.NewProjectsManager(dbConfig)
-	query := models.NewProductsQuery("1")
-	projects, err := pm.Execute(query)
-	if err != nil {
-		log.Panic(err)
-	}
-	serializedProjects, err := projects.Serialize()
-	if err != nil {
-		log.Panic(err)
-	}
-	log.Printf("projects are %s", serializedProjects)
+	http.HandleFunc("/projects", controllers.ProjectsControllerGET)
+	log.Println("Nu lyssna på :8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
