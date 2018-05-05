@@ -14,10 +14,15 @@ func main (){
 	fmt.Println("Hej, Världen!")
 
 	router := mux.NewRouter()
-	router.HandleFunc(
-		"/projects/{id:[0-9]+}",
-		controllers.ProjectsControllerGET,
-	).Methods("GET")
+
+	// routers for /projects resource
+	router.Path("/projects/").
+	        HandlerFunc(controllers.ProjectsQueryController).
+		Methods("GET")
+
+	router.Path("/projects/{id:[0-9]+}").
+	        HandlerFunc(controllers.ProjectsGetController).
+		Methods("GET")
 
 	http.Handle("/", router)
 

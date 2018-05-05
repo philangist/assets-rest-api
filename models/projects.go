@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"reflect"
+	// "reflect"
 	"strconv"
 	"time"
 )
@@ -63,23 +63,46 @@ func (pm *ProjectsManager) Execute(query *ProjectsQuery) (*Projects, error) {
 
 // EntityQuery
 type ProjectsQuery struct {
-	ID sql.NullInt64
+	ID     sql.NullInt64
+	Offset sql.NullInt64
+	Limit  sql.NullInt64
 }
 
-func NewProductsQuery(id string) *ProjectsQuery {
-	if id == ""{
-		return &ProjectsQuery{}
+func NewProductsQuery(id, offset, limit string) *ProjectsQuery {
+	var id64, offset64, limit64 sql.NullInt64
+
+	coerceToNullInt64 := func(value string) sql.NullInt64 {
+		i, err := strconv.Atoi(value)
+		return sql.NullInt64{Int64: int64(i), Valid: err == nil}
 	}
-	i, err := strconv.Atoi(id)
-	id64 := sql.NullInt64{Int64: int64(i), Valid: err == nil}
-	return &ProjectsQuery{id64}
+
+	if id == "" {
+		offset64 = coerceToNullInt64(offset)
+		limit64 = coerceToNullInt64(limit)
+		return &ProjectsQuery{
+			Offset: offset64,
+			Limit: limit64,
+		}
+	}
+
+	id64 = coerceToNullInt64(id)
+	return &ProjectsQuery{ID: id64}
 }
 
 func (pq *ProjectsQuery) Validate() error {
-	value := pq.ID.Int64
-	if value < 0 {
-		return fmt.Errorf("Error. Invalid ID value: %d", value)
+	id := pq.ID.Int64
+	offset := pq.Offset.Int64
+	limit := pq.Limit.Int64
+
+	if pq.ID.Valid && (id < 0) {
+		return fmt.Errorf("Error. Invalid ID value: %d", id)
 	}
+
+	if pq.ID.Valid && (limit > 0 && offset > 0) {
+		return fmt.Errorf(
+			"Error. ID value cannot be present with Limit and Offset values")
+	}
+
 	return nil
 }
 
@@ -88,11 +111,20 @@ func (pq *ProjectsQuery) Evaluate() string {
 	// composite `Project` representation for the API layer
 	query :=
 `SELECT p.id, p.name, a.id, p.created_at FROM projects p JOIN assets a ON a.project_id=p.id WHERE a.category=1`
-	if (reflect.TypeOf(pq.ID) != nil) && (pq.ID.Int64 > 0) {
+	if pq.ID.Valid && (pq.ID.Int64 > 0) {
 		query += fmt.Sprintf(" AND p.id=%d", pq.ID.Int64)
+	}
+	if pq.Limit.Valid && (pq.Limit.Int64 > 0){
+		query += fmt.Sprintf(" LIMIT %d", pq.Limit.Int64)
+	}
+	if pq.Offset.Valid && (pq.Offset.Int64 > 0){
+		query += fmt.Sprintf(" OFFSET %d", pq.Offset.Int64)
 	}
 
 	query += ";"
+
+	log.Println("query is ", query)
+
 	return query
 }
 
