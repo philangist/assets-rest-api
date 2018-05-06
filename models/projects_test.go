@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestDBConfig(t *testing.T){
+func TestDBConfig(t *testing.T) {
 	fmt.Println("Running TestDBConfig...")
 
 	dbConfig := DBConfig{"user", "password", "host", "db", "5432"}
@@ -24,30 +24,30 @@ type productsQueryTestCases struct {
 	tag      string
 	id       string
 	expected string
-	isValid    bool
+	isValid  bool
 }
 
-func TestProductsQuery(t *testing.T){
+func TestProductsQuery(t *testing.T) {
 	fmt.Println("Running TestProductsQuery...")
 
 	testCases := []productsQueryTestCases{
 		{
 			// implicit id=nil
-			tag:        "Case 1",
-			expected:   "SELECT p.id, p.name, a.id, p.created_at FROM projects p JOIN assets a ON a.project_id=p.id WHERE a.category=1;",
+			tag:      "Case 1",
+			expected: "SELECT p.id, p.name, a.id, p.created_at FROM projects p JOIN assets a ON a.project_id=p.id WHERE a.category=1;",
 			isValid:  false,
 		},
 		{
-			tag:        "Case 2",
-			id:         "-1",
-			expected:   "SELECT p.id, p.name, a.id, p.created_at FROM projects p JOIN assets a ON a.project_id=p.id WHERE a.category=1;",
+			tag:      "Case 2",
+			id:       "-1",
+			expected: "SELECT p.id, p.name, a.id, p.created_at FROM projects p JOIN assets a ON a.project_id=p.id WHERE a.category=1;",
 			isValid:  false,
 		},
 		{
-			tag:        "Case 3",
-			id:         "99",
-			expected:   "SELECT p.id, p.name, a.id, p.created_at FROM projects p JOIN assets a ON a.project_id=p.id WHERE a.category=1 AND p.id=99;",
-			isValid:    true,
+			tag:      "Case 3",
+			id:       "99",
+			expected: "SELECT p.id, p.name, a.id, p.created_at FROM projects p JOIN assets a ON a.project_id=p.id WHERE a.category=1 AND p.id=99;",
+			isValid:  true,
 		},
 	}
 

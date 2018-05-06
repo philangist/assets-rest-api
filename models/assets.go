@@ -42,7 +42,7 @@ func (am *AssetsManager) Execute(query *AssetsQuery) (*Assets, error) {
 	var assets []Asset
 	var serializableAssets []*SerializableAsset
 
-	for rows.Next(){
+	for rows.Next() {
 		err = rows.Scan(
 			&asset.ID,
 			&asset.Name,
@@ -114,12 +114,12 @@ func NewAssetsQuery(id, category, projectID, parentID, offset, limit string) (*A
 	}
 
 	return &AssetsQuery{
-		ID:         id64,
+		ID:        id64,
 		Category:  category64,
-		ProjectID:  projectID64,
-		ParentID:   parentID64,
-		Offset:     offset64,
-		Limit:      limit64,
+		ProjectID: projectID64,
+		ParentID:  parentID64,
+		Offset:    offset64,
+		Limit:     limit64,
 	}, nil
 }
 
@@ -143,7 +143,7 @@ func (aq *AssetsQuery) Validate() error {
 	if (category < 0) || (category >= 3) {
 		return fmt.Errorf(
 			"Error. Invalid category value %d", category)
-	} 
+	}
 
 	if projectID < 0 {
 		return fmt.Errorf(
@@ -160,7 +160,7 @@ func (aq *AssetsQuery) Validate() error {
 
 func (aq *AssetsQuery) Evaluate() string {
 	query :=
-`SELECT * FROM assets`
+		`SELECT * FROM assets`
 	if aq.ID > 0 {
 		query += fmt.Sprintf(" WHERE id = %d;", aq.ID)
 		return query
@@ -207,28 +207,28 @@ Pagination:
 // SerializableEntity
 type Assets struct {
 	Assets []*SerializableAsset `json:"data"`
-	Total                   int `json:"total"`
+	Total  int                  `json:"total"`
 }
 
 type Asset struct {
-	ID                    int
-	Name               string
-	ParentID    sql.NullInt64
-	MediaURL   sql.NullString
-	Category           string
-	ProjectID             int
-	CreatedAt       time.Time
+	ID        int
+	Name      string
+	ParentID  sql.NullInt64
+	MediaURL  sql.NullString
+	Category  string
+	ProjectID int
+	CreatedAt time.Time
 }
 
 // JSON serializable alias of Asset
 type SerializableAsset struct {
-	ID               int `json:"id"`
-	Name          string `json:"name"`
-	ParentID         int `json:"parent_id"`
-	MediaURL      string `json:"media_url"`
-	Category      string `json:"type"`
-	ProjectID        int `json:"project_id"`
-	CreatedAt  time.Time `json:"created_at"`
+	ID        int       `json:"id"`
+	Name      string    `json:"name"`
+	ParentID  int       `json:"parent_id"`
+	MediaURL  string    `json:"media_url"`
+	Category  string    `json:"type"`
+	ProjectID int       `json:"project_id"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 func NewSerializableAsset(a *Asset) *SerializableAsset {
@@ -244,13 +244,13 @@ func NewSerializableAsset(a *Asset) *SerializableAsset {
 	}
 
 	return &SerializableAsset{
-		ID:         a.ID,
-		Name:       a.Name,
-		ParentID:   parentID,
-		MediaURL:   mediaURL,
-		Category:   a.Category,
-		ProjectID:  a.ProjectID,
-		CreatedAt:  a.CreatedAt,
+		ID:        a.ID,
+		Name:      a.Name,
+		ParentID:  parentID,
+		MediaURL:  mediaURL,
+		Category:  a.Category,
+		ProjectID: a.ProjectID,
+		CreatedAt: a.CreatedAt,
 	}
 }
 

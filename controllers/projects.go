@@ -8,7 +8,7 @@ import (
 	"github.com/philangist/frameio-assets/models"
 )
 
-func ProjectsGet(id, offset,  limit string) ([]byte, error) {
+func ProjectsGet(id, offset, limit string) ([]byte, error) {
 	dbConfig := models.ReadDBConfigFromEnv()
 
 	pm := models.NewProjectsManager(dbConfig)

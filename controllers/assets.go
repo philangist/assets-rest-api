@@ -36,12 +36,12 @@ func AssetsGetController(w http.ResponseWriter, r *http.Request) {
 	)
 
 	/*
-        if len(assets) == 0 {
-            return 404
-        }
-	asset := assets[0]
-        return asset.Serialize()
-        */
+	        if len(assets) == 0 {
+	            return 404
+	        }
+		asset := assets[0]
+	        return asset.Serialize()
+	*/
 
 	if err != nil {
 		log.Panic(err)

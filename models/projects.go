@@ -41,7 +41,7 @@ func (pm *ProjectsManager) Execute(query *ProjectsQuery) (*Projects, error) {
 	var project Project
 	var projects []Project
 
-	for rows.Next(){
+	for rows.Next() {
 		err = rows.Scan(
 			&project.ID,
 			&project.Name,
@@ -83,7 +83,7 @@ func NewProductsQuery(id, offset, limit string) (*ProjectsQuery, error) {
 
 		return &ProjectsQuery{
 			Offset: offset64,
-			Limit: limit64,
+			Limit:  limit64,
 		}, nil
 	}
 
@@ -114,7 +114,7 @@ func (pq *ProjectsQuery) Validate() error {
 
 func (pq *ProjectsQuery) Evaluate() string {
 	query :=
-`SELECT p.id, p.name, a.id, p.created_at FROM projects p JOIN assets a ON a.project_id=p.id WHERE a.category=1 AND a.parent_id is NULL`
+		`SELECT p.id, p.name, a.id, p.created_at FROM projects p JOIN assets a ON a.project_id=p.id WHERE a.category=1 AND a.parent_id is NULL`
 	if pq.ID > 0 {
 		query += fmt.Sprintf(" AND p.id=%d;", pq.ID)
 		return query
@@ -135,14 +135,14 @@ func (pq *ProjectsQuery) Evaluate() string {
 // SerializableEntity
 type Projects struct {
 	Projects []Project `json:"data"`
-	Total         int `json:"total"`
+	Total    int       `json:"total"`
 }
 
 type Project struct {
-	ID                  int `json:"id"`
-	Name             string `json:"name"`
-	RootFolderID        int `json:"root_folder_id"`
-	CreatedAt     time.Time `json:"created_at"`
+	ID           int       `json:"id"`
+	Name         string    `json:"name"`
+	RootFolderID int       `json:"root_folder_id"`
+	CreatedAt    time.Time `json:"created_at"`
 }
 
 func (p *Projects) Serialize() ([]byte, error) {

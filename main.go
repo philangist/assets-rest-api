@@ -9,28 +9,27 @@ import (
 	"github.com/philangist/frameio-assets/controllers"
 )
 
-
-func main (){
+func main() {
 	fmt.Println("Hej, Världen!")
 
 	router := mux.NewRouter()
 
 	// routers for /projects resource
 	router.Path("/projects/").
-	        HandlerFunc(controllers.ProjectsQueryController).
+		HandlerFunc(controllers.ProjectsQueryController).
 		Methods("GET")
 
 	router.Path("/projects/{id:[0-9]+}").
-	        HandlerFunc(controllers.ProjectsGetController).
+		HandlerFunc(controllers.ProjectsGetController).
 		Methods("GET")
 
 	// routers for /assets resource
 	router.Path("/assets/").
-	        HandlerFunc(controllers.AssetsQueryController).
+		HandlerFunc(controllers.AssetsQueryController).
 		Methods("GET")
 
 	router.Path("/assets/{id:[0-9]+}").
-	        HandlerFunc(controllers.AssetsGetController).
+		HandlerFunc(controllers.AssetsGetController).
 		Methods("GET")
 
 	http.Handle("/", router)

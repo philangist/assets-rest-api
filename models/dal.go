@@ -17,7 +17,6 @@ type DBConfig struct {
 	port     string
 }
 
-
 func ReadDBConfigFromEnv() *DBConfig {
 	user := os.Getenv("POSTGRES_USER")
 	password := os.Getenv("POSTGRES_PASSWORD")
@@ -30,11 +29,11 @@ func ReadDBConfigFromEnv() *DBConfig {
 
 func (dbc *DBConfig) ConnectionString() string {
 	replacer := strings.NewReplacer(
-		"{user}",     dbc.User,
+		"{user}", dbc.User,
 		"{password}", dbc.Password,
 		"{hostname}", dbc.Hostname,
-		"{name}",     dbc.Name,
-		"{port}",     dbc.port,
+		"{name}", dbc.Name,
+		"{port}", dbc.port,
 	)
 	format := "postgresql://{user}:{password}@{hostname}:{port}/{name}?sslmode=disable"
 	return replacer.Replace(format)
@@ -47,7 +46,7 @@ type EntityManager interface {
 
 type EntityQuery interface {
 	Validate() error
-	Evaluate() string
+	Evaluate() string // should return (preparedStatement string, values []string)
 }
 
 type SerializableEntity interface {
