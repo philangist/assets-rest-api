@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql"
 	"os"
+	"strconv"
 	"strings"
 
 	_ "github.com/lib/pq"
@@ -53,6 +54,11 @@ type SerializableEntity interface {
 	Serialize() ([]byte, error)
 }
 
-func coerceToInt64() {}
+func CoerceToInt64(value string) (int64, error) {
+	if value != "" {
+		return strconv.ParseInt(value, 10, 64)
+	}
+	return 0, nil
+}
 
 func isNullCheck() {}

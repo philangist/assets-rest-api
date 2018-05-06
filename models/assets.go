@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 )
 
@@ -83,39 +82,33 @@ type AssetsQuery struct {
 
 func NewAssetsQuery(id, category, projectID, parentID, offset, limit string) (*AssetsQuery, error) {
 	var id64, category64, projectID64, parentID64, offset64, limit64 int64
-	coerceToInt64 := func(value string) (int64, error) {
-		if value != "" {
-			return strconv.ParseInt(value, 10, 64)
-		}
-		return 0, nil
-	}
 
-	id64, err := coerceToInt64(id)
+	id64, err := CoerceToInt64(id)
 	if err != nil {
 		return nil, err
 	}
 
-	category64, err = coerceToInt64(category)
+	category64, err = CoerceToInt64(category)
 	if err != nil {
 		return nil, err
 	}
 
-	parentID64, err = coerceToInt64(parentID)
+	parentID64, err = CoerceToInt64(parentID)
 	if err != nil {
 		return nil, err
 	}
 
-	projectID64, err = coerceToInt64(projectID)
+	projectID64, err = CoerceToInt64(projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	offset64, err = coerceToInt64(offset)
+	offset64, err = CoerceToInt64(offset)
 	if err != nil {
 		return nil, err
 	}
 
-	limit64, err = coerceToInt64(limit)
+	limit64, err = CoerceToInt64(limit)
 	if err != nil {
 		return nil, err
 	}
@@ -133,6 +126,8 @@ func NewAssetsQuery(id, category, projectID, parentID, offset, limit string) (*A
 func (aq *AssetsQuery) Validate() error {
 	id := aq.ID
 	category := aq.Category
+	projectID := aq.ProjectID
+	parentID := aq.ParentID
 	limit := aq.Limit
 	offset := aq.Offset
 
@@ -149,6 +144,16 @@ func (aq *AssetsQuery) Validate() error {
 		return fmt.Errorf(
 			"Error. Invalid category value %d", category)
 	} 
+
+	if projectID < 0 {
+		return fmt.Errorf(
+			"Error. Invalid projectID value %d", projectID)
+	}
+
+	if parentID < 0 {
+		return fmt.Errorf(
+			"Error. Invalid parentID value %d", parentID)
+	}
 
 	return nil
 }

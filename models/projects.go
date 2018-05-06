@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 )
 
@@ -62,42 +61,50 @@ func (pm *ProjectsManager) Execute(query *ProjectsQuery) (*Projects, error) {
 
 // EntityQuery
 type ProjectsQuery struct {
-	ID     sql.NullInt64
-	Offset sql.NullInt64
-	Limit  sql.NullInt64
+	ID     int64
+	Offset int64
+	Limit  int64
 }
 
 func NewProductsQuery(id, offset, limit string) (*ProjectsQuery, error) {
-	var id64, offset64, limit64 sql.NullInt64
-
-	coerceToNullInt64 := func(value string) sql.NullInt64 {
-		i, err := strconv.Atoi(value)
-		return sql.NullInt64{Int64: int64(i), Valid: err == nil}
-	}
+	var id64, offset64, limit64 int64
+	var err error
 
 	if id == "" {
-		offset64 = coerceToNullInt64(offset)
-		limit64 = coerceToNullInt64(limit)
+		offset64, err = CoerceToInt64(offset)
+		if err != nil {
+			return nil, err
+		}
+
+		limit64, err = CoerceToInt64(limit)
+		if err != nil {
+			return nil, err
+		}
+
 		return &ProjectsQuery{
 			Offset: offset64,
 			Limit: limit64,
 		}, nil
 	}
 
-	id64 = coerceToNullInt64(id)
+	id64, err = CoerceToInt64(id)
+	if err != nil {
+		return nil, err
+	}
+
 	return &ProjectsQuery{ID: id64}, nil
 }
 
 func (pq *ProjectsQuery) Validate() error {
-	id := pq.ID.Int64
-	offset := pq.Offset.Int64
-	limit := pq.Limit.Int64
+	id := pq.ID
+	offset := pq.Offset
+	limit := pq.Limit
 
-	if pq.ID.Valid && (id < 0) {
+	if id < 0 {
 		return fmt.Errorf("Error. Invalid ID value: %d", id)
 	}
 
-	if pq.ID.Valid && (limit > 0 && offset > 0) {
+	if (id != 0) && (limit > 0 && offset > 0) {
 		return fmt.Errorf(
 			"Error. ID value cannot be present with Limit and Offset values")
 	}
@@ -106,25 +113,22 @@ func (pq *ProjectsQuery) Validate() error {
 }
 
 func (pq *ProjectsQuery) Evaluate() string {
-	// generates query that left joins projects and assets tables to return
-	// composite `Project` representation for the API layer
 	query :=
-`SELECT p.id, p.name, a.id, p.created_at FROM projects p JOIN assets a ON a.project_id=p.id WHERE a.category=1`
-	if pq.ID.Valid && (pq.ID.Int64 > 0) {
-		query += fmt.Sprintf(" AND p.id=%d;", pq.ID.Int64)
+`SELECT p.id, p.name, a.id, p.created_at FROM projects p JOIN assets a ON a.project_id=p.id WHERE a.category=1 AND a.parent_id is NULL`
+	if pq.ID > 0 {
+		query += fmt.Sprintf(" AND p.id=%d;", pq.ID)
 		return query
 	}
-	if pq.Limit.Valid && (pq.Limit.Int64 > 0){
-		query += fmt.Sprintf(" LIMIT %d", pq.Limit.Int64)
+	if pq.Limit > 0 {
+		query += fmt.Sprintf(" LIMIT %d", pq.Limit)
 	}
-	if pq.Offset.Valid && (pq.Offset.Int64 > 0){
-		query += fmt.Sprintf(" OFFSET %d", pq.Offset.Int64)
+	if pq.Offset > 0 {
+		query += fmt.Sprintf(" OFFSET %d", pq.Offset)
 	}
 
 	query += ";"
 
 	log.Println("query is ", query)
-
 	return query
 }
 
