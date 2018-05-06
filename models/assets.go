@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	// "fmt"
 	"log"
-	// "strconv"
+	"strconv"
 	"time"
 )
 
@@ -73,16 +73,63 @@ func (am *AssetsManager) Execute(query *AssetsQuery) (*Assets, error) {
 
 // EntityQuery
 type AssetsQuery struct {
-	ID        sql.NullInt64
-	Type      sql.NullString
-	ProjectID sql.NullInt64
-	ParentID  sql.NullInt64
-	Offset    sql.NullInt64
-	Limit     sql.NullInt64
+	ID        int64
+	Type      int64
+	ProjectID int64
+	ParentID  int64
+	Offset    int64
+	Limit     int64
 }
 
-func NewAssetsQuery() *AssetsQuery {
-	return &AssetsQuery{}
+func NewAssetsQuery(id, category, projectID, parentID, offset, limit string) (*AssetsQuery, error) {
+	var id64, category64, projectID64, parentID64, offset64, limit64 int64
+	coerceToInt64 := func(value string) (int64, error) {
+		if value != "" {
+			return strconv.ParseInt(value, 10, 64)
+		}
+		return 0, nil
+	}
+
+
+
+	id64, err := coerceToInt64(id)
+	if err != nil {
+		return nil, err
+	}
+
+	category64, err = coerceToInt64(category)
+	if err != nil {
+		return nil, err
+	}
+
+	parentID64, err = coerceToInt64(parentID)
+	if err != nil {
+		return nil, err
+	}
+
+	projectID64, err = coerceToInt64(projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	offset64, err = coerceToInt64(offset)
+	if err != nil {
+		return nil, err
+	}
+
+	limit64, err = coerceToInt64(limit)
+	if err != nil {
+		return nil, err
+	}
+
+	return &AssetsQuery{
+		ID:         id64,
+		Type:       category64,
+		ProjectID:  projectID64,
+		ParentID:   parentID64,
+		Offset:     offset64,
+		Limit:      limit64,
+	}, nil
 }
 
 func (aq *AssetsQuery) Validate() error {

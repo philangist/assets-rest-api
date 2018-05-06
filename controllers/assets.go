@@ -12,11 +12,16 @@ func AssetsGet(id, offset,  limit string) ([]byte, error) {
 	dbConfig := models.ReadDBConfigFromEnv()
 
 	pm := models.NewAssetsManager(dbConfig)
-	query := models.NewAssetsQuery()
+	query, err := models.NewAssetsQuery("", "", "", "", "", "")
+	if err != nil {
+		log.Panic(err)
+	}
+
 	assets, err := pm.Execute(query)
 	if err != nil {
 		log.Panic(err)
 	}
+
 	return assets.Serialize()
 }
 

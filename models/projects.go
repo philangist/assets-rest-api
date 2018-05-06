@@ -67,7 +67,7 @@ type ProjectsQuery struct {
 	Limit  sql.NullInt64
 }
 
-func NewProductsQuery(id, offset, limit string) *ProjectsQuery {
+func NewProductsQuery(id, offset, limit string) (*ProjectsQuery, error) {
 	var id64, offset64, limit64 sql.NullInt64
 
 	coerceToNullInt64 := func(value string) sql.NullInt64 {
@@ -81,11 +81,11 @@ func NewProductsQuery(id, offset, limit string) *ProjectsQuery {
 		return &ProjectsQuery{
 			Offset: offset64,
 			Limit: limit64,
-		}
+		}, nil
 	}
 
 	id64 = coerceToNullInt64(id)
-	return &ProjectsQuery{ID: id64}
+	return &ProjectsQuery{ID: id64}, nil
 }
 
 func (pq *ProjectsQuery) Validate() error {

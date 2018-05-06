@@ -12,7 +12,11 @@ func ProjectsGet(id, offset,  limit string) ([]byte, error) {
 	dbConfig := models.ReadDBConfigFromEnv()
 
 	pm := models.NewProjectsManager(dbConfig)
-	query := models.NewProductsQuery(id, offset, limit)
+	query, err := models.NewProductsQuery(id, offset, limit)
+	if err != nil {
+		log.Panic(err)
+	}
+
 	projects, err := pm.Execute(query)
 	if err != nil {
 		log.Panic(err)
