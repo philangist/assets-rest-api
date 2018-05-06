@@ -8,40 +8,40 @@ import (
 	"github.com/philangist/frameio-assets/models"
 )
 
-func ProjectsGet(id, offset,  limit string) ([]byte, error) {
+func AssetsGet(id, offset,  limit string) ([]byte, error) {
 	dbConfig := models.ReadDBConfigFromEnv()
 
-	pm := models.NewProjectsManager(dbConfig)
-	query := models.NewProductsQuery(id, offset, limit)
-	projects, err := pm.Execute(query)
+	pm := models.NewAssetsManager(dbConfig)
+	query := models.NewAssetsQuery()
+	assets, err := pm.Execute(query)
 	if err != nil {
 		log.Panic(err)
 	}
-	return projects.Serialize()
+	return assets.Serialize()
 }
 
-func ProjectsGetController(w http.ResponseWriter, r *http.Request) {
+func AssetsGetController(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
-	serializedProjects, err := ProjectsGet(id, "", "")
+	serializedAssets, err := AssetsGet(id, "", "")
 
 	if err != nil {
 		log.Panic(err)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(serializedProjects)
+	w.Write(serializedAssets)
 }
 
-func ProjectsQueryController(w http.ResponseWriter, r *http.Request) {
+func AssetsQueryController(w http.ResponseWriter, r *http.Request) {
 	limit := r.FormValue("limit")
 	offset := r.FormValue("offset")
 	log.Printf("limit is %s, offset is %s", limit, offset)
 
-	serializedProjects, err := ProjectsGet("", offset, limit)
+	serializedAssets, err := AssetsGet("", offset, limit)
 	if err != nil {
 		log.Panic(err)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(serializedProjects)
+	w.Write(serializedAssets)
 }

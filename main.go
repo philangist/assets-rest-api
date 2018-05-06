@@ -24,6 +24,11 @@ func main (){
 	        HandlerFunc(controllers.ProjectsGetController).
 		Methods("GET")
 
+	// routers for /assets resource
+	router.Path("/assets/").
+	        HandlerFunc(controllers.AssetsQueryController).
+		Methods("GET")
+
 	http.Handle("/", router)
 
 	log.Println("Nu lyssna på :8080")

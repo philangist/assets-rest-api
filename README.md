@@ -41,12 +41,6 @@ status code: 200 OK
     }
 }
 ```
-supported query parameters:
-type        int - filter assets by type identifier
-project\_id int - filter assets by project identifier
-parent\_id  int - filter assets by parent_identifier
-expand     bool - returns all children of any assets that are returned by
-                  any combination of the above query parameters
 
 GET projects/:id - retrieve a specific project by id
 
@@ -103,6 +97,12 @@ status code: 200 OK
     }
 }
 ```
+supported query parameters:
+type        int - filter assets by type identifier
+project\_id int - filter assets by project identifier
+parent\_id  int - filter assets by parent_identifier
+expand     bool - returns all children of any assets that are returned by
+                  any combination of the above query parameters
 
 GET assets/:id retrieve a specific asset by id
 
