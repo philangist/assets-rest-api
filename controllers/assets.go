@@ -8,7 +8,7 @@ import (
 	"github.com/philangist/frameio-assets/models"
 )
 
-func AssetsGet(id, category, projectID, parentID, offset, limit string) ([]byte, error) {
+func AssetsGet(id, category, projectID, parentID, offset, limit string) (*models.Assets, error) {
 	dbConfig := models.ReadDBConfigFromEnv()
 
 	pm := models.NewAssetsManager(dbConfig)
@@ -16,39 +16,38 @@ func AssetsGet(id, category, projectID, parentID, offset, limit string) ([]byte,
 		id, category, projectID, parentID, offset, limit,
 	)
 	if err != nil {
-		log.Panic(err)
+		return nil, err
 	}
 
-	assets, err := pm.Execute(query)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	return assets.Serialize()
+	return pm.Execute(query)
 }
 
 func AssetsGetController(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	ignore := ""
 
-	serializedAssets, err := AssetsGet(
+	assets, err := AssetsGet(
 		id, ignore, ignore, ignore, ignore, ignore,
 	)
-
-	/*
-	        if len(assets) == 0 {
-	            return 404
-	        }
-		asset := assets[0]
-	        return asset.Serialize()
-	*/
-
 	if err != nil {
-		log.Panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if assets.Total == 0 {
+		http.NotFound(w, r)
+		return
+	}
+
+	asset := assets.Assets[0]
+	serializedAsset, err := asset.Serialize()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(serializedAssets)
+	w.Write(serializedAsset)
 }
 
 func AssetsQueryController(w http.ResponseWriter, r *http.Request) {
@@ -59,13 +58,18 @@ func AssetsQueryController(w http.ResponseWriter, r *http.Request) {
 	parentID := r.FormValue("parent_id")
 	limit := r.FormValue("limit")
 	offset := r.FormValue("offset")
-	log.Printf("limit is %s, offset is %s", limit, offset)
 
-	serializedAssets, err := AssetsGet(
+	assets, err := AssetsGet(
 		ignore, category, projectID, parentID, offset, limit,
 	)
 	if err != nil {
 		log.Panic(err)
+	}
+
+	serializedAssets, err := assets.Serialize()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")

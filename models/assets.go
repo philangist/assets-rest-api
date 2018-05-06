@@ -248,6 +248,11 @@ type SerializableAsset struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+func (sa *SerializableAsset) Serialize() ([]byte, error) {
+	return json.Marshal(sa)
+}
+
+
 func NewSerializableAsset(a *Asset) *SerializableAsset {
 	var parentID int
 	var mediaURL string
@@ -257,7 +262,8 @@ func NewSerializableAsset(a *Asset) *SerializableAsset {
 	}
 
 	if a.MediaURL.Valid {
-		mediaURL = a.MediaURL.String
+		mediaURL = fmt.Sprintf(
+			"http://dev.frame.io/%s", a.MediaURL.String)
 	}
 
 	return &SerializableAsset{

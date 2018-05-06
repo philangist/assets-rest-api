@@ -53,7 +53,7 @@ func TestProductsQuery(t *testing.T) {
 
 	for _, testCase := range testCases {
 		fmt.Println("Testing ProductsQuery for id: ", testCase.id)
-		query := NewProductsQuery(testCase.id, "", "")
+		query := NewProjectsQuery(testCase.id, "", "")
 		err := query.Validate()
 		if testCase.isValid != (err == nil) {
 			t.Errorf("%s: Validation failed with error:\n%s", testCase.tag, err)

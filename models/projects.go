@@ -74,7 +74,7 @@ type ProjectsQuery struct {
 	Limit  int64
 }
 
-func NewProductsQuery(id, offset, limit string) (*ProjectsQuery, error) {
+func NewProjectsQuery(id, offset, limit string) (*ProjectsQuery, error) {
 	var id64, offset64, limit64 int64
 	var err error
 
@@ -157,6 +157,11 @@ type Projects struct {
 	Total    int       `json:"total"`
 }
 
+func (p *Projects) Serialize() ([]byte, error) {
+	return json.Marshal(p)
+}
+
+
 type Project struct {
 	ID           int       `json:"id"`
 	Name         string    `json:"name"`
@@ -164,6 +169,6 @@ type Project struct {
 	CreatedAt    time.Time `json:"created_at"`
 }
 
-func (p *Projects) Serialize() ([]byte, error) {
+func (p *Project) Serialize() ([]byte, error) {
 	return json.Marshal(p)
 }
