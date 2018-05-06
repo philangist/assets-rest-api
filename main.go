@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -10,8 +9,6 @@ import (
 )
 
 func main() {
-	fmt.Println("Hej, Världen!")
-
 	router := mux.NewRouter()
 
 	// routers for /projects resource

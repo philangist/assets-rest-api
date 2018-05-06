@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+var DOMAIN_ROOT = "http://dev.frame.io"
+
 // EntityManager
 type AssetsManager struct {
 	DBConfig *DBConfig
@@ -41,7 +43,7 @@ func (am *AssetsManager) Execute(query *AssetsQuery) (*Assets, error) {
 
 	var rows *sql.Rows
 	queryString, values := query.Build()
-	log.Printf("query is %s values are %v", queryString, values)
+
 	if len(values) == 0 {
 		rows, err = db.Query(queryString)
 	} else {
@@ -134,7 +136,7 @@ func NewAssetsQuery(
 		return nil, err
 	}
 
-	if descendants != "" {
+	if descendants != IGNORE {
 		descendantsBool, err = strconv.ParseBool(descendants)
 		if err != nil {
 			return nil, err
@@ -252,7 +254,7 @@ func (aq *AssetsQuery) Build() (string, []interface{}) {
 	if aq.Descendants {
 		descendantsQuery := `
 WITH ancestor_nodes AS (
-    {ORIGINAL_QUERY}
+    {BASE_QUERY}
 )
 SELECT assets.id, assets.name, assets.parent_id, assets.media_url, assets.category,
        assets.project_id, assets.created_at
@@ -262,7 +264,7 @@ WHERE assets.id IN
 OR assets.parent_id IN
    (SELECT ID FROM ancestor_nodes)
 `
-		replacer := strings.NewReplacer("{ORIGINAL_QUERY}", query)
+		replacer := strings.NewReplacer("{BASE_QUERY}", query)
 		query = replacer.Replace(descendantsQuery)
 	}
 
@@ -279,6 +281,10 @@ type Assets struct {
 func NewAssets(assets []*SerializableAsset, total int, limit, offset int64) *Assets {
 	page := Pagination{total, limit, offset}
 	return &Assets{assets, page}
+}
+
+func (a *Assets) Serialize() ([]byte, error) {
+	return json.Marshal(a)
 }
 
 type Asset struct {
@@ -316,7 +322,7 @@ func NewSerializableAsset(a *Asset) *SerializableAsset {
 
 	if a.MediaURL.Valid {
 		mediaURL = fmt.Sprintf(
-			"http://dev.frame.io/%s", a.MediaURL.String)
+			"%s/%s",  DOMAIN_ROOT, a.MediaURL.String)
 	}
 
 	return &SerializableAsset{
@@ -328,8 +334,4 @@ func NewSerializableAsset(a *Asset) *SerializableAsset {
 		ProjectID: a.ProjectID,
 		CreatedAt: a.CreatedAt,
 	}
-}
-
-func (a *Assets) Serialize() ([]byte, error) {
-	return json.Marshal(a)
 }

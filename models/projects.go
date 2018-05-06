@@ -39,7 +39,7 @@ func (pm *ProjectsManager) Execute(query *ProjectsQuery) (*Projects, error) {
 
 	var rows *sql.Rows
 	queryString, values := query.Build()
-	log.Printf("query is %s values are %v", queryString, values)
+
 	if len(values) == 0 {
 		rows, err = db.Query(queryString)
 	} else {
@@ -96,7 +96,7 @@ func NewProjectsQuery(id, offset, limit string) (*ProjectsQuery, error) {
 	var id64, offset64, limit64 int64
 	var err error
 
-	if id == "" {
+	if id == IGNORE {
 		offset64, err = CoerceToInt64(offset)
 		if err != nil {
 			return nil, err

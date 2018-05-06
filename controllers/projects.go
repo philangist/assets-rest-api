@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -49,7 +48,8 @@ func ProjectsQueryController(w http.ResponseWriter, r *http.Request) {
 
 	projects, err := ProjectsGet(models.IGNORE, offset, limit)
 	if err != nil {
-		log.Panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	serializedProjects, err := projects.Serialize()

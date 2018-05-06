@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -71,7 +70,8 @@ func AssetsQueryController(w http.ResponseWriter, r *http.Request) {
 		limit,
 	)
 	if err != nil {
-		log.Panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	serializedAssets, err := assets.Serialize()

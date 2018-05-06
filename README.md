@@ -1,30 +1,25 @@
-API
+### Asset Picker API
 
-Introduction: A suite of resource representations and their corresponding
-endpoints for traversing the frame.io asset storage backend
+__Introduction:__  
+A suite of resource representations and their corresponding endpoints for traversing the frame.io asset storage backend
 
-Assumptions: There is an invariant we assume holds here, that every project
-             has exactly one root folder associated with it. This should be
-             enforced in the api layer code through the POST, PUT, and DELETE
-             verbs for both projects/ and assets/, and also possibly as a DB
-             level constraint on the assets table.
-             We also assume that all assets with type != 1 are leaves in the
-             project tree.
+Assumptions: There is an invariant we assume holds here, that every project has exactly one root folder associated with it. This should be enforced in the api layer code through the POST, PUT, and DELETE verbs for both projects/ and assets/, and also possibly as a DB level constraint on the assets table  
 
-Meta/Pagination: TODO: FILL THIS WHEN I DECIDE IF/HOW TO IMPLEMENT PAGINATION
+We also assume that all assets with type != 1 are leaves in the project tree  
 
-Projects
+__Meta/Pagination:__  
+TODO: FILL THIS WHEN I DECIDE IF/HOW TO IMPLEMENT PAGINATION  
 
-- Projects are the high-level structures users to store their video and other
-  media assets. All of their content is organized within a "project", and within
-  each project files can be infinitely nested within folders.
+### Projects:  
 
-Endpoints:
-GET projects/ - list all projects in the database
+- Projects are the high-level structures users to store their video and other media assets. All of their content is organized within a "project", and within each project files can be infinitely nested within folders.  
 
-response:
-status code: 200 OK
-```json
+__Endpoints:__  
+`GET /projects/` - list all projects in the database  
+
+response:  
+status code: 200 OK  
+```javascript
 {
     data: [
         {
@@ -42,11 +37,11 @@ status code: 200 OK
 }
 ```
 
-GET projects/:id - retrieve a specific project by id
+`GET /projects/:id` - retrieve a specific project by id  
 
-response:
-status code: 200 OK
-```json
+response:  
+status code: 200 OK  
+```javascript
 {
     id: int,
     name: string (128),
@@ -55,21 +50,16 @@ status code: 200 OK
 }
 ```
 
-Assets
+### Assets  
 
-- Assets are the mechanism used to both refer to the media objects we're
-  actually storing as well as express their heirarchical relationship with
-  each other. Take note that for every project there must exist exactly one
-  asset with type=folder, parent_id=null, and project_id=project.id.
-  Also take note that it is a logical contradiction for an asset to have a
-  parent asset of type > 1.
+- Assets are the mechanism used to both refer to the media objects we're actually storing as well as express their heirarchical relationship with each other. Take note that for every project there must exist exactly one asset with `type='folder'`, `parent_id=null`, and `project_id=project.id`. Also take note that it is a logical contradiction for an asset to have a parent asset of type > 1.  
 
-Endpoints:
-GET assets/ - list all assets in the database
+__Endpoints:__  
+`GET /assets/` - list all assets in the database  
 
-response:
-status code: 200 OK
-```json
+response:  
+status code: 200 OK  
+```javascript
 {
     data: [
         {
@@ -77,17 +67,10 @@ status code: 200 OK
             name: string (128)
             parent_id: int // references a parent asset with type=folder.
             // nullable only for type=folder objects
-            media_url: string (variable length, typically between 84
-            - 100 characters),  // physical location of the
-            // media object associated
-            // with this asset. format is a http url of type
-            // "http://<env>.frame.io/asset_sha256_hash". possible values of
-            // env are dev, qa-<cluster_id> and cdn
-            type: int media object type // current possible values are int(1)
-            // for folders and (2) for video files
-            project_id: int // references the encapsulating project which
-            // this asset belongs to. there must exist exactly one asset of
-            // type=folder and parent_id=null for every project in the database
+            media_url: string (variable length, typically between 84 - 100 characters),  // physical location of the
+            // media object associated with this asset. format is a http url of type "http://<env>.frame.io/asset_sha256_hash". possible values of env are dev, qa-<cluster_id> and cdn
+            type: int media object type // current possible values are int(1) for folders and (2) for video files
+            project_id: int // references the encapsulating project which this asset belongs to. there must exist exactly one asset of type=folder and parent_id=null for every project in the database
             created_at: timestamp // asset creation date
         },
         ..
@@ -97,18 +80,18 @@ status code: 200 OK
     }
 }
 ```
-supported query parameters:
-type        int - filter assets by type identifier
-project\_id int - filter assets by project identifier
-parent\_id  int - filter assets by parent_identifier
-expand     bool - returns all children of any assets that are returned by
-                  any combination of the above query parameters
+supported query parameters:  
+`type`        int - filter assets by type identifier  
+`project\_id` int - filter assets by project identifier  
+`parent\_id`  int - filter assets by parent identifier  
+`expand`      bool - returns all children of any assets that are returned by  
+                  any combination of the above query parameters  
 
-GET assets/:id retrieve a specific asset by id
+`GET assets/:id` retrieve a specific asset by id  
 
-response:
-status code: 200 OK
-```json
+response:  
+status code: 200 OK  
+```javascript
 {
     id: int
     name: string (128)
