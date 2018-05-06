@@ -322,7 +322,7 @@ func NewSerializableAsset(a *Asset) *SerializableAsset {
 
 	if a.MediaURL.Valid {
 		mediaURL = fmt.Sprintf(
-			"%s/%s",  DOMAIN_ROOT, a.MediaURL.String)
+			"%s/%s", DOMAIN_ROOT, a.MediaURL.String)
 	}
 
 	return &SerializableAsset{

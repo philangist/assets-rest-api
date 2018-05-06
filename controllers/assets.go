@@ -9,7 +9,7 @@ import (
 
 func AssetsGet(id, category, projectID, parentID, descendants, offset, limit string) (*models.Assets, error) {
 	if limit == models.IGNORE {
-		limit = "10"  // default page size
+		limit = "10" // default page size
 	}
 
 	pm := models.DefaultAssetsManager()
