@@ -9,6 +9,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
+const IGNORE = ""
+
 type DBConfig struct {
 	User     string
 	Password string
@@ -21,8 +23,8 @@ func ReadDBConfigFromEnv() *DBConfig {
 	user := os.Getenv("POSTGRES_USER")
 	password := os.Getenv("POSTGRES_PASSWORD")
 	name := os.Getenv("POSTGRES_DB")
-	hostName := "db"
-	port := "5432"
+	hostName := os.Getenv("POSTGRES_HOSTNAME")
+	port := os.Getenv("POSTGRES_PORT")
 
 	return &DBConfig{user, password, hostName, name, port}
 }
@@ -55,13 +57,13 @@ type SerializableEntity interface {
 
 // Maybe this should be passed in to Execute() or EntityQuery{}
 type Pagination struct {
-	Total  int         `json:"total"`
-	Limit  int64       `json:"limit"`
-	Offset int64       `json:"offset"`
+	Total  int   `json:"total"`
+	Limit  int64 `json:"limit"`
+	Offset int64 `json:"offset"`
 }
 
 func CoerceToInt64(value string) (int64, error) {
-	if value != "" {
+	if value != IGNORE {
 		return strconv.ParseInt(value, 10, 64)
 	}
 	return 0, nil

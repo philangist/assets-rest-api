@@ -1,13 +1,11 @@
 BEGIN;
-DROP TABLE IF EXISTS assets;
-DROP TABLE IF EXISTS projects;
-CREATE TABLE projects (
+CREATE TABLE IF NOT EXISTS projects (
        id serial NOT NULL,
        name varchar(128) NOT NULL,
        created_at timestamp NOT NULL DEFAULT NOW(),
        CONSTRAINT projects_pkey PRIMARY KEY (id)
 );
-CREATE TABLE assets (
+CREATE TABLE IF NOT EXISTS assets (
        id serial NOT NULL,
        name varchar(128) NOT NULL,
        parent_id INT REFERENCES assets ON DELETE CASCADE,

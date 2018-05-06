@@ -17,6 +17,10 @@ func NewProjectsManager(dbc *DBConfig) *ProjectsManager {
 	return &ProjectsManager{dbc}
 }
 
+func DefaultProjectsManager() *ProjectsManager {
+	return NewProjectsManager(ReadDBConfigFromEnv())
+}
+
 func (pm *ProjectsManager) Connection() (*sql.DB, error) {
 	return sql.Open("postgres", pm.DBConfig.ConnectionString())
 }
@@ -38,7 +42,7 @@ func (pm *ProjectsManager) Execute(query *ProjectsQuery) (*Projects, error) {
 	log.Printf("query is %s values are %v", queryString, values)
 	if len(values) == 0 {
 		rows, err = db.Query(queryString)
-	}else{
+	} else {
 		rows, err = db.Query(queryString, values...)
 	}
 	if err != nil {
@@ -72,8 +76,8 @@ func (pm *ProjectsManager) Execute(query *ProjectsQuery) (*Projects, error) {
 		offset = int64(total)
 	}
 
-	if (limit > 0) && (offset + limit <= int64(total)) {
-		projects = projects[offset:offset+limit]
+	if (limit > 0) && (offset+limit <= int64(total)) {
+		projects = projects[offset : offset+limit]
 	} else {
 		projects = projects[offset:]
 	}
@@ -135,8 +139,10 @@ func (pq *ProjectsQuery) Validate() error {
 }
 
 func (pq *ProjectsQuery) Build() (string, []interface{}) {
-	query := `SELECT p.id, p.name, a.id, p.created_at
-FROM projects p JOIN assets a ON a.project_id=p.id
+	query := `
+SELECT DISTINCT p.id, p.name, a.id, p.created_at
+FROM projects p
+JOIN assets a ON a.project_id=p.id
 WHERE a.category=1 AND a.parent_id is NULL`
 
 	counter := 1
@@ -165,7 +171,6 @@ func NewProjects(projects []Project, total int, limit, offset int64) *Projects {
 func (p *Projects) Serialize() ([]byte, error) {
 	return json.Marshal(p)
 }
-
 
 type Project struct {
 	ID           int       `json:"id"`

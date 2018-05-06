@@ -9,9 +9,7 @@ import (
 )
 
 func ProjectsGet(id, offset, limit string) (*models.Projects, error) {
-	dbConfig := models.ReadDBConfigFromEnv()
-
-	pm := models.NewProjectsManager(dbConfig)
+	pm := models.DefaultProjectsManager()
 	query, err := models.NewProjectsQuery(id, offset, limit)
 	if err != nil {
 		return nil, err
@@ -22,9 +20,8 @@ func ProjectsGet(id, offset, limit string) (*models.Projects, error) {
 
 func ProjectsGetController(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
-	ignore := ""
 
-	projects, err := ProjectsGet(id, ignore, ignore)
+	projects, err := ProjectsGet(id, models.IGNORE, models.IGNORE)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -47,12 +44,10 @@ func ProjectsGetController(w http.ResponseWriter, r *http.Request) {
 }
 
 func ProjectsQueryController(w http.ResponseWriter, r *http.Request) {
-	ignore := ""
-
 	limit := r.FormValue("limit")
 	offset := r.FormValue("offset")
 
-	projects, err := ProjectsGet(ignore, offset, limit)
+	projects, err := ProjectsGet(models.IGNORE, offset, limit)
 	if err != nil {
 		log.Panic(err)
 	}

@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"time"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // EntityManager
@@ -17,6 +17,10 @@ type AssetsManager struct {
 
 func NewAssetsManager(dbc *DBConfig) *AssetsManager {
 	return &AssetsManager{dbc}
+}
+
+func DefaultAssetsManager() *AssetsManager {
+	return NewAssetsManager(ReadDBConfigFromEnv())
 }
 
 func (am *AssetsManager) Connection() (*sql.DB, error) {
@@ -40,7 +44,7 @@ func (am *AssetsManager) Execute(query *AssetsQuery) (*Assets, error) {
 	log.Printf("query is %s values are %v", queryString, values)
 	if len(values) == 0 {
 		rows, err = db.Query(queryString)
-	}else{
+	} else {
 		rows, err = db.Query(queryString, values...)
 	}
 	if err != nil {
@@ -50,7 +54,6 @@ func (am *AssetsManager) Execute(query *AssetsQuery) (*Assets, error) {
 
 	var asset Asset
 	var assets []Asset
-	var serializableAssets []*SerializableAsset
 
 	for rows.Next() {
 		err = rows.Scan(
@@ -70,6 +73,7 @@ func (am *AssetsManager) Execute(query *AssetsQuery) (*Assets, error) {
 		assets = append(assets, asset)
 	}
 
+	serializableAssets := []*SerializableAsset{}
 	for _, asset := range assets {
 		serializableAssets = append(
 			serializableAssets,
@@ -85,8 +89,8 @@ func (am *AssetsManager) Execute(query *AssetsQuery) (*Assets, error) {
 		offset = int64(total)
 	}
 
-	if (limit > 0) && (offset + limit <= int64(total)) {
-		serializableAssets = serializableAssets[offset:offset+limit]
+	if (limit > 0) && (offset+limit <= int64(total)) {
+		serializableAssets = serializableAssets[offset : offset+limit]
 	} else {
 		serializableAssets = serializableAssets[offset:]
 	}
@@ -182,17 +186,17 @@ func (aq *AssetsQuery) Validate() error {
 
 	if (category < 0) || (category >= 3) {
 		return fmt.Errorf(
-			"Error. Invalid category value %d", category)
+			"Error. Invalid Category value %d", category)
 	}
 
 	if projectID < 0 {
 		return fmt.Errorf(
-			"Error. Invalid projectID value %d", projectID)
+			"Error. Invalid ProjectID value %d", projectID)
 	}
 
 	if parentID < 0 {
 		return fmt.Errorf(
-			"Error. Invalid parentID value %d", parentID)
+			"Error. Invalid ParentID value %d", parentID)
 	}
 
 	return nil
@@ -206,7 +210,7 @@ func (aq *AssetsQuery) baseQuery() (string, []interface{}) {
 
 	// Generates PostgreSQL prepared statements of the type
 	// ("SELECT foo FROM bar WHERE foo.name = $1", "baz")
-	addParameter := func(sqlFragment string, parameter interface{}){
+	addParameter := func(sqlFragment string, parameter interface{}) {
 		query += fmt.Sprintf(sqlFragment, counter)
 		parameters = append(parameters, parameter)
 		counter += 1
@@ -244,7 +248,6 @@ func (aq *AssetsQuery) baseQuery() (string, []interface{}) {
 
 func (aq *AssetsQuery) Build() (string, []interface{}) {
 	query, parameters := aq.baseQuery()
-	// counter := len(parameters) + 1
 
 	if aq.Descendants {
 		descendantsQuery := `
@@ -263,22 +266,6 @@ OR assets.parent_id IN
 		query = replacer.Replace(descendantsQuery)
 	}
 
-	/*
-	addParameter := func(sqlFragment string, parameter interface{}){
-		query += fmt.Sprintf(sqlFragment, counter)
-		parameters = append(parameters, parameter)
-		counter += 1
-	}
-
-	if aq.Limit > 0 {
-		addParameter(" LIMIT $%d", aq.Limit)
-	}
-
-	if aq.Offset > 0 {
-		addParameter(" OFFSET $%d", aq.Offset)
-	}
-        */
-
 	query += " ORDER BY assets.id ASC;"
 	return query, parameters
 }
@@ -286,7 +273,7 @@ OR assets.parent_id IN
 // SerializableEntity
 type Assets struct {
 	Assets []*SerializableAsset `json:"data"`
-	Page             Pagination `json:"page"`
+	Page   Pagination           `json:"page"`
 }
 
 func NewAssets(assets []*SerializableAsset, total int, limit, offset int64) *Assets {
@@ -295,13 +282,13 @@ func NewAssets(assets []*SerializableAsset, total int, limit, offset int64) *Ass
 }
 
 type Asset struct {
-	ID          int
-	Name        string
-	ParentID    sql.NullInt64
-	MediaURL    sql.NullString
-	Category    string
-	ProjectID   int
-	CreatedAt   time.Time
+	ID        int
+	Name      string
+	ParentID  sql.NullInt64
+	MediaURL  sql.NullString
+	Category  string
+	ProjectID int
+	CreatedAt time.Time
 }
 
 // JSON serializable alias of Asset
@@ -318,7 +305,6 @@ type SerializableAsset struct {
 func (sa *SerializableAsset) Serialize() ([]byte, error) {
 	return json.Marshal(sa)
 }
-
 
 func NewSerializableAsset(a *Asset) *SerializableAsset {
 	var parentID int

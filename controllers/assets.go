@@ -9,9 +9,8 @@ import (
 )
 
 func AssetsGet(id, category, projectID, parentID, descendants, offset, limit string) (*models.Assets, error) {
-	dbConfig := models.ReadDBConfigFromEnv()
+	pm := models.DefaultAssetsManager()
 
-	pm := models.NewAssetsManager(dbConfig)
 	query, err := models.NewAssetsQuery(
 		id, category, projectID, parentID, descendants, offset, limit,
 	)
@@ -24,10 +23,14 @@ func AssetsGet(id, category, projectID, parentID, descendants, offset, limit str
 
 func AssetsGetController(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
-	ignore := ""
-
 	assets, err := AssetsGet(
-		id, ignore, ignore, ignore, ignore, ignore, ignore,
+		id,
+		models.IGNORE,
+		models.IGNORE,
+		models.IGNORE,
+		models.IGNORE,
+		models.IGNORE,
+		models.IGNORE,
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -51,8 +54,6 @@ func AssetsGetController(w http.ResponseWriter, r *http.Request) {
 }
 
 func AssetsQueryController(w http.ResponseWriter, r *http.Request) {
-	ignore := ""
-
 	category := r.FormValue("type")
 	projectID := r.FormValue("project_id")
 	parentID := r.FormValue("parent_id")
@@ -61,7 +62,13 @@ func AssetsQueryController(w http.ResponseWriter, r *http.Request) {
 	offset := r.FormValue("offset")
 
 	assets, err := AssetsGet(
-		ignore, category, projectID, parentID, descendants, offset, limit,
+		models.IGNORE,
+		category,
+		projectID,
+		parentID,
+		descendants,
+		offset,
+		limit,
 	)
 	if err != nil {
 		log.Panic(err)
