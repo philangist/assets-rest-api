@@ -77,7 +77,26 @@ func (am *AssetsManager) Execute(query *AssetsQuery) (*Assets, error) {
 		)
 	}
 
-	return NewAssets(serializableAssets, query.Limit, query.Offset), nil
+	offset := query.Offset
+	limit := query.Limit
+	total := len(serializableAssets)
+
+	if offset > int64(total) {
+		offset = int64(total)
+	}
+
+	if (limit > 0) && (offset + limit <= int64(total)) {
+		serializableAssets = serializableAssets[offset:offset+limit]
+	} else {
+		serializableAssets = serializableAssets[offset:]
+	}
+
+	return NewAssets(
+		serializableAssets,
+		total,
+		query.Limit,
+		query.Offset,
+	), nil
 }
 
 // EntityQuery
@@ -87,8 +106,8 @@ type AssetsQuery struct {
 	ProjectID   int64
 	ParentID    int64
 	Descendants bool
-	Offset      int64
 	Limit       int64
+	Offset      int64
 }
 
 func NewAssetsQuery(
@@ -225,7 +244,7 @@ func (aq *AssetsQuery) baseQuery() (string, []interface{}) {
 
 func (aq *AssetsQuery) Build() (string, []interface{}) {
 	query, parameters := aq.baseQuery()
-	counter := len(parameters) + 1
+	// counter := len(parameters) + 1
 
 	if aq.Descendants {
 		descendantsQuery := `
@@ -242,9 +261,9 @@ OR assets.parent_id IN
 `
 		replacer := strings.NewReplacer("{ORIGINAL_QUERY}", query)
 		query = replacer.Replace(descendantsQuery)
-		log.Println("descendants query is ", query)
 	}
 
+	/*
 	addParameter := func(sqlFragment string, parameter interface{}){
 		query += fmt.Sprintf(sqlFragment, counter)
 		parameters = append(parameters, parameter)
@@ -258,6 +277,7 @@ OR assets.parent_id IN
 	if aq.Offset > 0 {
 		addParameter(" OFFSET $%d", aq.Offset)
 	}
+        */
 
 	query += " ORDER BY assets.id ASC;"
 	return query, parameters
@@ -269,8 +289,8 @@ type Assets struct {
 	Page             Pagination `json:"page"`
 }
 
-func NewAssets(assets []*SerializableAsset, Limit, Offset int64) *Assets {
-	page := Pagination{len(assets), Limit, Offset}
+func NewAssets(assets []*SerializableAsset, total int, limit, offset int64) *Assets {
+	page := Pagination{total, limit, offset}
 	return &Assets{assets, page}
 }
 

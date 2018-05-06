@@ -64,7 +64,21 @@ func (pm *ProjectsManager) Execute(query *ProjectsQuery) (*Projects, error) {
 		projects = append(projects, project)
 	}
 
-	return NewProjects(projects, query.Limit, query.Offset), nil
+	offset := query.Offset
+	limit := query.Limit
+	total := len(projects)
+
+	if offset > int64(total) {
+		offset = int64(total)
+	}
+
+	if (limit > 0) && (offset + limit <= int64(total)) {
+		projects = projects[offset:offset+limit]
+	} else {
+		projects = projects[offset:]
+	}
+
+	return NewProjects(projects, total, query.Limit, query.Offset), nil
 }
 
 // EntityQuery
@@ -128,23 +142,9 @@ WHERE a.category=1 AND a.parent_id is NULL`
 	counter := 1
 	parameters := make([]interface{}, 0)
 
-	// Generates PostgreSQL prepared statements of the type
-	// ("SELECT foo FROM bar WHERE foo.name = $1", "baz")
-	addParameter := func(sqlFragment string, parameter interface{}){
-		query += fmt.Sprintf(sqlFragment, counter)
-		parameters = append(parameters, parameter)
-		counter += 1
-	}
-
 	if pq.ID > 0 {
-		addParameter(" AND p.id=$%d;", pq.ID)
-		return query, parameters
-	}
-	if pq.Limit > 0 {
-		addParameter(" LIMIT $%d", pq.Limit)
-	}
-	if pq.Offset > 0 {
-		addParameter(" OFFSET $%d", pq.Offset)
+		query += fmt.Sprintf(" AND p.id=$%d", counter)
+		parameters = append(parameters, pq.ID)
 	}
 
 	query += ";"
@@ -157,8 +157,8 @@ type Projects struct {
 	Page     Pagination `json:"page"`
 }
 
-func NewProjects(projects []Project, Limit, Offset int64) *Projects {
-	page := Pagination{len(projects), Limit, Offset}
+func NewProjects(projects []Project, total int, limit, offset int64) *Projects {
+	page := Pagination{total, limit, offset}
 	return &Projects{projects, page}
 }
 
