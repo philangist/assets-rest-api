@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"time"
+	"strconv"
+	"strings"
 )
 
 // EntityManager
@@ -34,7 +36,7 @@ func (am *AssetsManager) Execute(query *AssetsQuery) (*Assets, error) {
 	}
 
 	var rows *sql.Rows
-	queryString, values := query.Evaluate()
+	queryString, values := query.Build()
 	log.Printf("query is %s values are %v", queryString, values)
 	if len(values) == 0 {
 		rows, err = db.Query(queryString)
@@ -80,16 +82,19 @@ func (am *AssetsManager) Execute(query *AssetsQuery) (*Assets, error) {
 
 // EntityQuery
 type AssetsQuery struct {
-	ID        int64
-	Category  int64
-	ProjectID int64
-	ParentID  int64
-	Offset    int64
-	Limit     int64
+	ID          int64
+	Category    int64
+	ProjectID   int64
+	ParentID    int64
+	Descendants bool
+	Offset      int64
+	Limit       int64
 }
 
-func NewAssetsQuery(id, category, projectID, parentID, offset, limit string) (*AssetsQuery, error) {
+func NewAssetsQuery(
+	id, category, projectID, parentID, descendants, offset, limit string) (*AssetsQuery, error) {
 	var id64, category64, projectID64, parentID64, offset64, limit64 int64
+	var descendantsBool bool
 
 	id64, err := CoerceToInt64(id)
 	if err != nil {
@@ -104,6 +109,13 @@ func NewAssetsQuery(id, category, projectID, parentID, offset, limit string) (*A
 	parentID64, err = CoerceToInt64(parentID)
 	if err != nil {
 		return nil, err
+	}
+
+	if descendants != "" {
+		descendantsBool, err = strconv.ParseBool(descendants)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	projectID64, err = CoerceToInt64(projectID)
@@ -122,12 +134,13 @@ func NewAssetsQuery(id, category, projectID, parentID, offset, limit string) (*A
 	}
 
 	return &AssetsQuery{
-		ID:        id64,
-		Category:  category64,
-		ProjectID: projectID64,
-		ParentID:  parentID64,
-		Offset:    offset64,
-		Limit:     limit64,
+		ID:          id64,
+		Category:    category64,
+		ProjectID:   projectID64,
+		ParentID:    parentID64,
+		Descendants: descendantsBool,
+		Offset:      offset64,
+		Limit:       limit64,
 	}, nil
 }
 
@@ -166,7 +179,7 @@ func (aq *AssetsQuery) Validate() error {
 	return nil
 }
 
-func (aq *AssetsQuery) Evaluate() (string, []interface{}) {
+func (aq *AssetsQuery) baseQuery() (string, []interface{}) {
 	query := `SELECT * FROM assets`
 
 	counter := 1
@@ -181,7 +194,7 @@ func (aq *AssetsQuery) Evaluate() (string, []interface{}) {
 	}
 
 	if aq.ID > 0 {
-		addParameter(" WHERE id = $%d;", aq.ID)
+		addParameter(" WHERE id = $%d", aq.ID)
 		return query, parameters
 	}
 
@@ -193,7 +206,7 @@ func (aq *AssetsQuery) Evaluate() (string, []interface{}) {
 		if aq.ParentID > 0 {
 			addParameter(" AND parent_id=$%d", aq.ParentID)
 		}
-		goto Pagination
+		return query, parameters
 	}
 
 	if aq.ProjectID > 0 {
@@ -201,14 +214,43 @@ func (aq *AssetsQuery) Evaluate() (string, []interface{}) {
 		if aq.ParentID > 0 {
 			addParameter(" AND parent_id=$%d", aq.ParentID)
 		}
-		goto Pagination
+		return query, parameters
 	}
 
 	if aq.ParentID > 0 {
 		addParameter(" WHERE parent_id=$%d", aq.ParentID)
 	}
+	return query, parameters
+}
 
-Pagination:
+func (aq *AssetsQuery) Build() (string, []interface{}) {
+	query, parameters := aq.baseQuery()
+	counter := len(parameters) + 1
+
+	if aq.Descendants {
+		descendantsQuery := `
+WITH ancestor_nodes AS (
+    {ORIGINAL_QUERY}
+)
+SELECT assets.id, assets.name, assets.parent_id, assets.media_url, assets.category,
+       assets.project_id, assets.created_at
+FROM assets
+WHERE assets.id IN
+    (SELECT ID FROM ancestor_nodes)
+OR assets.parent_id IN
+   (SELECT ID FROM ancestor_nodes)
+`
+		replacer := strings.NewReplacer("{ORIGINAL_QUERY}", query)
+		query = replacer.Replace(descendantsQuery)
+		log.Println("descendants query is ", query)
+	}
+
+	addParameter := func(sqlFragment string, parameter interface{}){
+		query += fmt.Sprintf(sqlFragment, counter)
+		parameters = append(parameters, parameter)
+		counter += 1
+	}
+
 	if aq.Limit > 0 {
 		addParameter(" LIMIT $%d", aq.Limit)
 	}
@@ -217,7 +259,7 @@ Pagination:
 		addParameter(" OFFSET $%d", aq.Offset)
 	}
 
-	query += ";"
+	query += " ORDER BY assets.id ASC;"
 	return query, parameters
 }
 
@@ -228,13 +270,13 @@ type Assets struct {
 }
 
 type Asset struct {
-	ID        int
-	Name      string
-	ParentID  sql.NullInt64
-	MediaURL  sql.NullString
-	Category  string
-	ProjectID int
-	CreatedAt time.Time
+	ID          int
+	Name        string
+	ParentID    sql.NullInt64
+	MediaURL    sql.NullString
+	Category    string
+	ProjectID   int
+	CreatedAt   time.Time
 }
 
 // JSON serializable alias of Asset

@@ -8,12 +8,12 @@ import (
 	"github.com/philangist/frameio-assets/models"
 )
 
-func AssetsGet(id, category, projectID, parentID, offset, limit string) (*models.Assets, error) {
+func AssetsGet(id, category, projectID, parentID, descendants, offset, limit string) (*models.Assets, error) {
 	dbConfig := models.ReadDBConfigFromEnv()
 
 	pm := models.NewAssetsManager(dbConfig)
 	query, err := models.NewAssetsQuery(
-		id, category, projectID, parentID, offset, limit,
+		id, category, projectID, parentID, descendants, offset, limit,
 	)
 	if err != nil {
 		return nil, err
@@ -27,7 +27,7 @@ func AssetsGetController(w http.ResponseWriter, r *http.Request) {
 	ignore := ""
 
 	assets, err := AssetsGet(
-		id, ignore, ignore, ignore, ignore, ignore,
+		id, ignore, ignore, ignore, ignore, ignore, ignore,
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -56,11 +56,12 @@ func AssetsQueryController(w http.ResponseWriter, r *http.Request) {
 	category := r.FormValue("type")
 	projectID := r.FormValue("project_id")
 	parentID := r.FormValue("parent_id")
+	descendants := r.FormValue("descendants")
 	limit := r.FormValue("limit")
 	offset := r.FormValue("offset")
 
 	assets, err := AssetsGet(
-		ignore, category, projectID, parentID, offset, limit,
+		ignore, category, projectID, parentID, descendants, offset, limit,
 	)
 	if err != nil {
 		log.Panic(err)

@@ -34,7 +34,7 @@ func (pm *ProjectsManager) Execute(query *ProjectsQuery) (*Projects, error) {
 	}
 
 	var rows *sql.Rows
-	queryString, values := query.Evaluate()
+	queryString, values := query.Build()
 	log.Printf("query is %s values are %v", queryString, values)
 	if len(values) == 0 {
 		rows, err = db.Query(queryString)
@@ -120,7 +120,7 @@ func (pq *ProjectsQuery) Validate() error {
 	return nil
 }
 
-func (pq *ProjectsQuery) Evaluate() (string, []interface{}) {
+func (pq *ProjectsQuery) Build() (string, []interface{}) {
 	query := `SELECT p.id, p.name, a.id, p.created_at
 FROM projects p JOIN assets a ON a.project_id=p.id
 WHERE a.category=1 AND a.parent_id is NULL`

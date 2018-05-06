@@ -46,7 +46,7 @@ type EntityManager interface {
 
 type EntityQuery interface {
 	Validate() error
-	Evaluate() (string, []interface{})
+	Build() (string, []interface{})
 }
 
 type SerializableEntity interface {

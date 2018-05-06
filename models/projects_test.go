@@ -58,7 +58,7 @@ func TestProductsQuery(t *testing.T) {
 		if testCase.isValid != (err == nil) {
 			t.Errorf("%s: Validation failed with error:\n%s", testCase.tag, err)
 		}
-		actual := query.Evaluate()
+		actual := query.Build()
 		if testCase.expected != actual {
 			t.Errorf("%s: Evaluation returned an unexpected output.\nExpected: %s\nActual: %s", testCase.tag, testCase.expected, actual)
 		}
