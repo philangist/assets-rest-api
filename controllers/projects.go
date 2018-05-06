@@ -30,7 +30,7 @@ func ProjectsGetController(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if projects.Total == 0 {
+	if len(projects.Projects) == 0 {
 		http.NotFound(w, r)
 		return
 	}
@@ -56,7 +56,6 @@ func ProjectsQueryController(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Panic(err)
 	}
-
 
 	serializedProjects, err := projects.Serialize()
 	if err != nil {

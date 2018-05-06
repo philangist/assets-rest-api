@@ -64,7 +64,7 @@ func (pm *ProjectsManager) Execute(query *ProjectsQuery) (*Projects, error) {
 		projects = append(projects, project)
 	}
 
-	return &Projects{projects, len(projects)}, nil
+	return NewProjects(projects, query.Limit, query.Offset), nil
 }
 
 // EntityQuery
@@ -153,8 +153,13 @@ WHERE a.category=1 AND a.parent_id is NULL`
 
 // SerializableEntity
 type Projects struct {
-	Projects []Project `json:"data"`
-	Total    int       `json:"total"`
+	Projects []Project  `json:"data"`
+	Page     Pagination `json:"page"`
+}
+
+func NewProjects(projects []Project, Limit, Offset int64) *Projects {
+	page := Pagination{len(projects), Limit, Offset}
+	return &Projects{projects, page}
 }
 
 func (p *Projects) Serialize() ([]byte, error) {

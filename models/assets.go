@@ -77,7 +77,7 @@ func (am *AssetsManager) Execute(query *AssetsQuery) (*Assets, error) {
 		)
 	}
 
-	return &Assets{serializableAssets, len(serializableAssets)}, nil
+	return NewAssets(serializableAssets, query.Limit, query.Offset), nil
 }
 
 // EntityQuery
@@ -266,7 +266,12 @@ OR assets.parent_id IN
 // SerializableEntity
 type Assets struct {
 	Assets []*SerializableAsset `json:"data"`
-	Total  int                  `json:"total"`
+	Page             Pagination `json:"page"`
+}
+
+func NewAssets(assets []*SerializableAsset, Limit, Offset int64) *Assets {
+	page := Pagination{len(assets), Limit, Offset}
+	return &Assets{assets, page}
 }
 
 type Asset struct {

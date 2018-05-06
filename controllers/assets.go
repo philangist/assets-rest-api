@@ -34,7 +34,7 @@ func AssetsGetController(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if assets.Total == 0 {
+	if len(assets.Assets) == 0 {
 		http.NotFound(w, r)
 		return
 	}

@@ -53,6 +53,13 @@ type SerializableEntity interface {
 	Serialize() ([]byte, error)
 }
 
+// Maybe this should be passed in to Execute() or EntityQuery{}
+type Pagination struct {
+	Total  int         `json:"total"`
+	Limit  int64       `json:"limit"`
+	Offset int64       `json:"offset"`
+}
+
 func CoerceToInt64(value string) (int64, error) {
 	if value != "" {
 		return strconv.ParseInt(value, 10, 64)
