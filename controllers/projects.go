@@ -8,6 +8,10 @@ import (
 )
 
 func ProjectsGet(id, offset, limit string) (*models.Projects, error) {
+	if limit == models.IGNORE {
+		limit = "10"  // default page size
+	}
+
 	pm := models.DefaultProjectsManager()
 	query, err := models.NewProjectsQuery(id, offset, limit)
 	if err != nil {

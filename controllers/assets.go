@@ -8,8 +8,11 @@ import (
 )
 
 func AssetsGet(id, category, projectID, parentID, descendants, offset, limit string) (*models.Assets, error) {
-	pm := models.DefaultAssetsManager()
+	if limit == models.IGNORE {
+		limit = "10"  // default page size
+	}
 
+	pm := models.DefaultAssetsManager()
 	query, err := models.NewAssetsQuery(
 		id, category, projectID, parentID, descendants, offset, limit,
 	)
