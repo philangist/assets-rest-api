@@ -52,3 +52,7 @@ type EntityQuery interface {
 type SerializableEntity interface {
 	Serialize() ([]byte, error)
 }
+
+func coerceToInt64() {}
+
+func isNullCheck() {}

@@ -111,7 +111,8 @@ func (pq *ProjectsQuery) Evaluate() string {
 	query :=
 `SELECT p.id, p.name, a.id, p.created_at FROM projects p JOIN assets a ON a.project_id=p.id WHERE a.category=1`
 	if pq.ID.Valid && (pq.ID.Int64 > 0) {
-		query += fmt.Sprintf(" AND p.id=%d", pq.ID.Int64)
+		query += fmt.Sprintf(" AND p.id=%d;", pq.ID.Int64)
+		return query
 	}
 	if pq.Limit.Valid && (pq.Limit.Int64 > 0){
 		query += fmt.Sprintf(" LIMIT %d", pq.Limit.Int64)

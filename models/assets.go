@@ -3,7 +3,7 @@ package models
 import (
 	"database/sql"
 	"encoding/json"
-	// "fmt"
+	"fmt"
 	"log"
 	"strconv"
 	"time"
@@ -74,7 +74,7 @@ func (am *AssetsManager) Execute(query *AssetsQuery) (*Assets, error) {
 // EntityQuery
 type AssetsQuery struct {
 	ID        int64
-	Type      int64
+	Category  int64
 	ProjectID int64
 	ParentID  int64
 	Offset    int64
@@ -89,8 +89,6 @@ func NewAssetsQuery(id, category, projectID, parentID, offset, limit string) (*A
 		}
 		return 0, nil
 	}
-
-
 
 	id64, err := coerceToInt64(id)
 	if err != nil {
@@ -124,7 +122,7 @@ func NewAssetsQuery(id, category, projectID, parentID, offset, limit string) (*A
 
 	return &AssetsQuery{
 		ID:         id64,
-		Type:       category64,
+		Category:  category64,
 		ProjectID:  projectID64,
 		ParentID:   parentID64,
 		Offset:     offset64,
@@ -133,12 +131,71 @@ func NewAssetsQuery(id, category, projectID, parentID, offset, limit string) (*A
 }
 
 func (aq *AssetsQuery) Validate() error {
+	id := aq.ID
+	category := aq.Category
+	limit := aq.Limit
+	offset := aq.Offset
+
+	if id < 0 {
+		return fmt.Errorf("Error. Invalid ID value: %d", id)
+	}
+
+	if (id != 0) && (limit > 0 && offset > 0) {
+		return fmt.Errorf(
+			"Error. ID value cannot be present with Limit and Offset values")
+	}
+
+	if (category < 0) || (category >= 3) {
+		return fmt.Errorf(
+			"Error. Invalid category value %d", category)
+	} 
+
 	return nil
 }
 
 func (aq *AssetsQuery) Evaluate() string {
 	query :=
-`SELECT * FROM assets;`
+`SELECT * FROM assets`
+	if aq.ID > 0 {
+		query += fmt.Sprintf(" WHERE id = %d;", aq.ID)
+		return query
+	}
+
+	if aq.Category > 0 {
+		query += fmt.Sprintf(" WHERE category=%d", aq.Category)
+		if aq.ProjectID > 0 {
+			query += fmt.Sprintf(" AND project_id=%d", aq.ProjectID)
+		}
+		if aq.ParentID > 0 {
+			query += fmt.Sprintf(" AND parent_id=%d", aq.ParentID)
+		}
+		goto Pagination
+	}
+
+	if aq.ProjectID > 0 {
+		query += fmt.Sprintf(" WHERE project_id=%d", aq.ProjectID)
+		if aq.ParentID > 0 {
+			query += fmt.Sprintf(" AND parent_id=%d", aq.ParentID)
+		}
+		goto Pagination
+	}
+
+	if aq.ParentID > 0 {
+		query += fmt.Sprintf(" WHERE parent_id=%d", aq.ParentID)
+	}
+
+Pagination:
+	if aq.Limit > 0 {
+		query += fmt.Sprintf(" LIMIT %d", aq.Limit)
+	}
+
+	if aq.Offset > 0 {
+		query += fmt.Sprintf(" OFFSET %d", aq.Offset)
+	}
+
+	query += ";"
+
+	log.Println("query is ", query)
 	return query
 }
 
@@ -158,6 +215,7 @@ type Asset struct {
 	CreatedAt       time.Time
 }
 
+// JSON serializable alias of Asset
 type SerializableAsset struct {
 	ID               int `json:"id"`
 	Name          string `json:"name"`
