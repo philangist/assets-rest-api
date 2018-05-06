@@ -32,7 +32,15 @@ func (am *AssetsManager) Execute(query *AssetsQuery) (*Assets, error) {
 	if err != nil {
 		log.Panic(err)
 	}
-	rows, err := db.Query(query.Evaluate())
+
+	var rows *sql.Rows
+	queryString, values := query.Evaluate()
+	log.Printf("query is %s values are %v", queryString, values)
+	if len(values) == 0 {
+		rows, err = db.Query(queryString)
+	}else{
+		rows, err = db.Query(queryString, values...)
+	}
 	if err != nil {
 		log.Panic(err)
 	}
@@ -158,50 +166,59 @@ func (aq *AssetsQuery) Validate() error {
 	return nil
 }
 
-func (aq *AssetsQuery) Evaluate() string {
-	query :=
-		`SELECT * FROM assets`
+func (aq *AssetsQuery) Evaluate() (string, []interface{}) {
+	query := `SELECT * FROM assets`
+
+	counter := 1
+	parameters := make([]interface{}, 0)
+
+	// Generates PostgreSQL prepared statements of the type
+	// ("SELECT foo FROM bar WHERE foo.name = $1", "baz")
+	addParameter := func(sqlFragment string, parameter interface{}){
+		query += fmt.Sprintf(sqlFragment, counter)
+		parameters = append(parameters, parameter)
+		counter += 1
+	}
+
 	if aq.ID > 0 {
-		query += fmt.Sprintf(" WHERE id = %d;", aq.ID)
-		return query
+		addParameter(" WHERE id = $%d;", aq.ID)
+		return query, parameters
 	}
 
 	if aq.Category > 0 {
-		query += fmt.Sprintf(" WHERE category=%d", aq.Category)
+		addParameter(" WHERE category=$%d", aq.Category)
 		if aq.ProjectID > 0 {
-			query += fmt.Sprintf(" AND project_id=%d", aq.ProjectID)
+			addParameter(" AND project_id=$%d", aq.ProjectID)
 		}
 		if aq.ParentID > 0 {
-			query += fmt.Sprintf(" AND parent_id=%d", aq.ParentID)
+			addParameter(" AND parent_id=$%d", aq.ParentID)
 		}
 		goto Pagination
 	}
 
 	if aq.ProjectID > 0 {
-		query += fmt.Sprintf(" WHERE project_id=%d", aq.ProjectID)
+		addParameter(" WHERE project_id=$%d", aq.ProjectID)
 		if aq.ParentID > 0 {
-			query += fmt.Sprintf(" AND parent_id=%d", aq.ParentID)
+			addParameter(" AND parent_id=$%d", aq.ParentID)
 		}
 		goto Pagination
 	}
 
 	if aq.ParentID > 0 {
-		query += fmt.Sprintf(" WHERE parent_id=%d", aq.ParentID)
+		addParameter(" WHERE parent_id=$%d", aq.ParentID)
 	}
 
 Pagination:
 	if aq.Limit > 0 {
-		query += fmt.Sprintf(" LIMIT %d", aq.Limit)
+		addParameter(" LIMIT $%d", aq.Limit)
 	}
 
 	if aq.Offset > 0 {
-		query += fmt.Sprintf(" OFFSET %d", aq.Offset)
+		addParameter(" OFFSET $%d", aq.Offset)
 	}
 
 	query += ";"
-
-	log.Println("query is ", query)
-	return query
+	return query, parameters
 }
 
 // SerializableEntity

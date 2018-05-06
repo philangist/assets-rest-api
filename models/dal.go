@@ -46,7 +46,7 @@ type EntityManager interface {
 
 type EntityQuery interface {
 	Validate() error
-	Evaluate() string // should return (preparedStatement string, values []string)
+	Evaluate() (string, []interface{})
 }
 
 type SerializableEntity interface {
@@ -59,5 +59,3 @@ func CoerceToInt64(value string) (int64, error) {
 	}
 	return 0, nil
 }
-
-func isNullCheck() {}

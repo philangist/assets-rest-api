@@ -32,7 +32,15 @@ func (pm *ProjectsManager) Execute(query *ProjectsQuery) (*Projects, error) {
 	if err != nil {
 		log.Panic(err)
 	}
-	rows, err := db.Query(query.Evaluate())
+
+	var rows *sql.Rows
+	queryString, values := query.Evaluate()
+	log.Printf("query is %s values are %v", queryString, values)
+	if len(values) == 0 {
+		rows, err = db.Query(queryString)
+	}else{
+		rows, err = db.Query(queryString, values...)
+	}
 	if err != nil {
 		log.Panic(err)
 	}
@@ -112,24 +120,35 @@ func (pq *ProjectsQuery) Validate() error {
 	return nil
 }
 
-func (pq *ProjectsQuery) Evaluate() string {
-	query :=
-		`SELECT p.id, p.name, a.id, p.created_at FROM projects p JOIN assets a ON a.project_id=p.id WHERE a.category=1 AND a.parent_id is NULL`
+func (pq *ProjectsQuery) Evaluate() (string, []interface{}) {
+	query := `SELECT p.id, p.name, a.id, p.created_at
+FROM projects p JOIN assets a ON a.project_id=p.id
+WHERE a.category=1 AND a.parent_id is NULL`
+
+	counter := 1
+	parameters := make([]interface{}, 0)
+
+	// Generates PostgreSQL prepared statements of the type
+	// ("SELECT foo FROM bar WHERE foo.name = $1", "baz")
+	addParameter := func(sqlFragment string, parameter interface{}){
+		query += fmt.Sprintf(sqlFragment, counter)
+		parameters = append(parameters, parameter)
+		counter += 1
+	}
+
 	if pq.ID > 0 {
-		query += fmt.Sprintf(" AND p.id=%d;", pq.ID)
-		return query
+		addParameter(" AND p.id=$%d;", pq.ID)
+		return query, parameters
 	}
 	if pq.Limit > 0 {
-		query += fmt.Sprintf(" LIMIT %d", pq.Limit)
+		addParameter(" LIMIT $%d", pq.Limit)
 	}
 	if pq.Offset > 0 {
-		query += fmt.Sprintf(" OFFSET %d", pq.Offset)
+		addParameter(" OFFSET $%d", pq.Offset)
 	}
 
 	query += ";"
-
-	log.Println("query is ", query)
-	return query
+	return query, parameters
 }
 
 // SerializableEntity
