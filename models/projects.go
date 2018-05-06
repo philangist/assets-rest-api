@@ -39,6 +39,7 @@ func (pm *ProjectsManager) Execute(query *ProjectsQuery) (*Projects, error) {
 
 	var rows *sql.Rows
 	queryString, values := query.Build()
+	log.Printf("Query is:%s\nValues are:\n%v", queryString, values)
 
 	if len(values) == 0 {
 		rows, err = db.Query(queryString)
