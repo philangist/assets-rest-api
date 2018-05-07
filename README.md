@@ -92,7 +92,7 @@ supported query parameters:
 `type`        int - query assets by type identifier  
 `project\_id` int - query assets by project identifier  
 `parent\_id`  int - query assets by parent identifier  
-`expand`      bool - returns all immediate children (1 level down the tree) of assets that are returned by  
+`descendants` bool - returns all immediate children (1 level down the tree) of assets that are returned by  
                   any combination of the above query parameters  
 
 `GET assets/:id` - retrieve a specific asset by id  
