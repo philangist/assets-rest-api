@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/philangist/frameio-assets/models"
+	"github.com/philangist/assets-rest-api/models"
 )
 
 func ProjectsGet(id, offset, limit string) (*models.Projects, error) {

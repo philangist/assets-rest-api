@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/philangist/frameio-assets/controllers"
+	"github.com/philangist/assets-rest-api/controllers"
 )
 
 func main() {

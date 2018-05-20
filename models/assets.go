@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-var DOMAIN_ROOT = "http://dev.frame.io"
+var DOMAIN_ROOT = "http://dev.domain.com"
 
 // EntityManager
 type AssetsManager struct {

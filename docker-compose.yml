@@ -22,4 +22,4 @@ services:
     ports:
       - 8080:8080
     volumes:
-      - .:/go/src/github.com/philangist/frameio-assets
+      - .:/go/src/github.com/philangist/assets-rest-api

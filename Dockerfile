@@ -1,8 +1,8 @@
 FROM golang:1.10
 
-RUN mkdir -p /go/src/github.com/philangist/frameio-assets
-WORKDIR /go/src/github.com/philangist/frameio-assets
+RUN mkdir -p /go/src/github.com/philangist/assets-rest-api
+WORKDIR /go/src/github.com/philangist/assets-rest-api
 
-ADD . /go/src/github.com/philangist/frameio-assets
+ADD . /go/src/github.com/philangist/assets-rest-api
 
 RUN go get github.com/lib/pq
